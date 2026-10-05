@@ -20,3 +20,4 @@ Files changed :
 
 Tests done:
 - Basic - Set up pools, set up page table, turn paging on, access 256K continuous memory entries in logical address space
+- Test page directory updates : In the read-write test, set the address jumps in test loop to 4 MB and check if a new page directory entry is added everytime. 
