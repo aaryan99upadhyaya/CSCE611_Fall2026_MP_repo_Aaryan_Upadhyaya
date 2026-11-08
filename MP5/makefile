@@ -12,7 +12,28 @@ GCC=x86_64-elf-gcc
 LD=x86_64-elf-ld
 endif
 
+SCH ?= 0
+INT ?= 0
+RR ?= 0
+TERM ?= 0
+
 GCC_OPTIONS = -m32 -nostdlib -fno-builtin -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -fno-stack-protector -fleading-underscore -fno-asynchronous-unwind-tables -fno-pie
+
+ifeq ($(SCH), 1)
+GCC_OPTIONS += -D_USES_SCHEDULER_
+endif
+
+ifeq ($(INT), 1)
+GCC_OPTIONS += -D_USES_INTERRUPTS_
+endif
+
+ifeq ($(RR), 1)
+GCC_OPTIONS += -D_USES_ROUND_ROBIN_
+endif
+
+ifeq ($(TERM), 1)
+GCC_OPTIONS += -D_TERMINATING_FUNCTIONS_
+endif
 
 all: kernel.bin
 

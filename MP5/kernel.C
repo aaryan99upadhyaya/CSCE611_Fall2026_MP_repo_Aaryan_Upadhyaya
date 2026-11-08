@@ -23,12 +23,14 @@
 
 /* -- COMMENT/UNCOMMENT THE FOLLOWING LINE TO EXCLUDE/INCLUDE SCHEDULER CODE */
 
-#define _USES_SCHEDULER_
+//#define _USES_SCHEDULER_
 /* This macro is defined when we want to force the code below to use
    a scheduler.
    Otherwise, no scheduler is used, and the threads pass control to each
    other in a co-routine fashion.
 */
+
+#define _BURST_LEN_ 10
 
 
 /* -- UNCOMMENT THE FOLLOWING LINE TO MAKE THREADS TERMINATING */
@@ -114,7 +116,8 @@ void pass_on_CPU(Thread * _to_thread) {
 
         /* We don't use a scheduler. Explicitely pass control to the next
            thread in a co-routine fashion. */
-	Thread::dispatch_to(_to_thread);
+
+    Thread::dispatch_to(_to_thread);
 
 #else
 
@@ -149,7 +152,7 @@ void fun1() {
 #endif
     {	
         Console::puts("FUN 1 IN BURST["); Console::puti(j); Console::puts("]\n");
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < _BURST_LEN_; i++) {
             Console::puts("FUN 1: TICK ["); Console::puti(i); Console::puts("]\n");
         }
         pass_on_CPU(thread2);
@@ -168,7 +171,7 @@ void fun2() {
 #endif  
     {		
         Console::puts("FUN 2 IN BURST["); Console::puti(j); Console::puts("]\n");
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < _BURST_LEN_; i++) {
             Console::puts("FUN 2: TICK ["); Console::puti(i); Console::puts("]\n");
         }
         pass_on_CPU(thread3);
@@ -181,7 +184,7 @@ void fun3() {
 
     for(int j = 0;; j++) {
         Console::puts("FUN 3 IN BURST["); Console::puti(j); Console::puts("]\n");
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < _BURST_LEN_; i++) {
 	    Console::puts("FUN 3: TICK ["); Console::puti(i); Console::puts("]\n");
         }
         pass_on_CPU(thread4);
@@ -194,7 +197,7 @@ void fun4() {
 
     for(int j = 0;; j++) {
         Console::puts("FUN 4 IN BURST["); Console::puti(j); Console::puts("]\n");
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < _BURST_LEN_; i++) {
 	    Console::puts("FUN 4: TICK ["); Console::puti(i); Console::puts("]\n");
         }
         pass_on_CPU(thread1);
@@ -253,14 +256,18 @@ int main() {
                  we enable interrupts correctly. If we forget to do it,
                  the timer "dies". */
 
+    #ifdef _USES_ROUND_ROBIN_
+    EOQTimer eoq_timer(20); /* timer ticks every 50ms */
+    InterruptHandler::register_handler(0, &eoq_timer);
+    #else
     SimpleTimer timer(100); /* timer ticks every 10ms. */
     InterruptHandler::register_handler(0, &timer);
     /* The Timer is implemented as an interrupt handler. */
+    #endif
 
 #ifdef _USES_SCHEDULER_
 
     /* -- SCHEDULER -- IF YOU HAVE ONE -- */
- 
     SYSTEM_SCHEDULER = new Scheduler();
 
 #endif

@@ -68,11 +68,15 @@ class Scheduler {
 
 private:
 
-   // The ready queue for threads
-   ReadyQueueNode * readyQueueHead;
-   ReadyQueueNode * readyQueueTail;
+   //EOQTimer * eoq_timer;
 
 public:
+
+   // The ready queue for threads
+   static ReadyQueueNode * readyQueueHead;
+   static ReadyQueueNode * readyQueueTail;
+
+   static StaleThreadQueueNode * staleThreadQueueHead;
 
    Scheduler();
    /* Setup the scheduler. This sets up the ready queue, for example.

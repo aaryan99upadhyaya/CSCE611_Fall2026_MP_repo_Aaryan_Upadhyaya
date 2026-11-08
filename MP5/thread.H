@@ -21,8 +21,6 @@
 /* DEFINES */
 /*--------------------------------------------------------------------------*/
 
-/* -- (none) -- */
-
 /*--------------------------------------------------------------------------*/
 /* INCLUDES */
 /*--------------------------------------------------------------------------*/
@@ -32,6 +30,13 @@
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */
 /*--------------------------------------------------------------------------*/
+
+class Thread;
+
+struct StaleThreadQueueNode {
+    Thread * thread;
+    StaleThreadQueueNode * next;
+};
 
 /* -- THREAD FUNCTION (CALLED WHEN THREAD STARTS RUNNING) */
 typedef void (*Thread_Function)();
@@ -65,6 +70,9 @@ private:
     */
 
 public: 
+
+    static StaleThreadQueueNode * staleThreadQueueHead;
+
     Thread(Thread_Function _tf, char * _stack, unsigned int _stack_size);
     /* Create a thread that is set up to execute the given thread function. 
        The thread is given a pointer to the stack to use. 
@@ -85,6 +93,9 @@ public:
     static Thread * CurrentThread();
     /* Returns the currently running thread. nullptr if no thread has started 
        yet. */
+
+    static void thread_start();
+    static void thread_shutdown();
 
 };
 

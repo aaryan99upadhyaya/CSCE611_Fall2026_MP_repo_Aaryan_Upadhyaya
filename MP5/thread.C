@@ -36,6 +36,7 @@
 #include "thread.H"
 
 #include "threads_low.H"
+#include "scheduler.H"
 
 /*--------------------------------------------------------------------------*/
 /* EXTERNS */
@@ -44,6 +45,8 @@
 Thread * current_thread = 0;
 /* Pointer to the currently running thread. This is used by the scheduler,
    for example. */
+
+StaleThreadQueueNode * Thread::staleThreadQueueHead;
 
 /* -------------------------------------------------------------------------*/
 /* LOCAL DATA PRIVATE TO THREAD AND DISPATCHER CODE */
@@ -67,22 +70,62 @@ inline void Thread::push(unsigned long _val) {
 /* -------------------------------------------------------------------------*/
 /* LOCAL FUNCTIONS TO START/SHUTDOWN THREADS. */
 
-static void thread_shutdown() {
+void Thread::thread_shutdown() {
     /* This function should be called when the thread returns from the thread function.
        It terminates the thread by releasing memory and any other resources held by the thread. 
        This is a bit complicated because the thread termination interacts with the scheduler.
      */
 
-    assert(false);
+    #ifdef _USES_SCHEDULER_
+    // add thread to stale queue
+
+    Thread * currThread = Thread::CurrentThread();
+    Console::puts("Thread termination started for : ");
+    Console::putui(currThread->ThreadId());
+    Console::puts("\n");
+    if(staleThreadQueueHead==nullptr) {
+        Thread::staleThreadQueueHead = new StaleThreadQueueNode;
+        Thread::staleThreadQueueHead->thread = currThread;
+        Thread::staleThreadQueueHead->next = nullptr;
+    } else {
+        StaleThreadQueueNode * curr = Thread::staleThreadQueueHead;
+        while(curr->next != nullptr) {
+            curr = curr->next;
+        }
+        curr->next = new StaleThreadQueueNode;
+        curr->next->thread = currThread;
+        curr->next->next = nullptr;
+    }
+
+    Console::puts("Thread put on termination list : ");
+    Console::putui(currThread->ThreadId());
+    Console::puts("\n");
+
+    Thread * nextThread = Scheduler::readyQueueHead->thread;
+
+    Console::puts("Dispatching to next thread: ");
+    Console::putui(nextThread->ThreadId());
+    Console::puts("\n");
+    ReadyQueueNode * oldHead = Scheduler::readyQueueHead;
+    Scheduler::readyQueueHead = Scheduler::readyQueueHead->next;
+    delete(oldHead); // since ReadyQueueHead has already moved, free memory here
+    Thread::dispatch_to(nextThread);
+    #endif
+    //ReadyQueueNode * oldHead = Scheduler::readyQueueHead;
+    //Scheduler::readyQueueHead = Scheduler::readyQueueHead->next;
+    //delete(oldHead);
+
     /* Let's not worry about it for now. 
        This means that we should have non-terminating thread functions. 
     */
 }
 
-static void thread_start() {
+void Thread::thread_start() {
      /* This function is used to release the thread for execution in the ready queue. */
-    
-     /* We need to add code, but it is probably nothing more than enabling interrupts. */
+    #if defined(_USES_INTERRUPTS_) || defined(_USES_ROUND_ROBIN_)
+     if(!Machine::interrupts_enabled())
+        Machine::enable_interrupts();
+    #endif
 }
 
 void Thread::setup_context(Thread_Function _tfunction){
@@ -169,6 +212,8 @@ Thread::Thread(Thread_Function _tf, char * _stack, unsigned int _stack_size) {
     /* ---- THREAD ID */
    
     thread_id = nextFreePid++;
+
+    staleThreadQueueHead = nullptr;
 
     /* ---- STACK POINTER */
 
