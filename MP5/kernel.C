@@ -54,6 +54,7 @@
 #include "interrupts.H"
 
 #include "simple_timer.H"    /* TIMER MANAGEMENT  */
+#include "eoq_timer.H"
 
 #include "frame_pool.H"      /* MEMORY MANAGEMENT */
 #include "mem_pool.H"
@@ -155,7 +156,9 @@ void fun1() {
         for (int i = 0; i < _BURST_LEN_; i++) {
             Console::puts("FUN 1: TICK ["); Console::puti(i); Console::puts("]\n");
         }
+        #ifndef _USES_ROUND_ROBIN_
         pass_on_CPU(thread2);
+        #endif
     }
 }
 
@@ -174,7 +177,9 @@ void fun2() {
         for (int i = 0; i < _BURST_LEN_; i++) {
             Console::puts("FUN 2: TICK ["); Console::puti(i); Console::puts("]\n");
         }
+        #ifndef _USES_ROUND_ROBIN_
         pass_on_CPU(thread3);
+        #endif
     }
 }
 
@@ -187,7 +192,9 @@ void fun3() {
         for (int i = 0; i < _BURST_LEN_; i++) {
 	    Console::puts("FUN 3: TICK ["); Console::puti(i); Console::puts("]\n");
         }
+        #ifndef _USES_ROUND_ROBIN_
         pass_on_CPU(thread4);
+        #endif
     }
 }
 
@@ -200,7 +207,9 @@ void fun4() {
         for (int i = 0; i < _BURST_LEN_; i++) {
 	    Console::puts("FUN 4: TICK ["); Console::puti(i); Console::puts("]\n");
         }
+        #ifndef _USES_ROUND_ROBIN_
         pass_on_CPU(thread1);
+        #endif
     }
 }
 
@@ -269,6 +278,10 @@ int main() {
 
     /* -- SCHEDULER -- IF YOU HAVE ONE -- */
     SYSTEM_SCHEDULER = new Scheduler();
+
+#ifdef _USES_ROUND_ROBIN_
+    eoq_timer.register_scheduler(SYSTEM_SCHEDULER);
+#endif
 
 #endif
 
