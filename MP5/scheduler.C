@@ -94,22 +94,5 @@ void Scheduler::add(Thread * _thread) {
 
 void Scheduler::terminate(Thread * _thread) {
   // Remove the thread from the ready queue
-  if(readyQueueHead != nullptr && readyQueueHead->thread == _thread) {
-    ReadyQueueNode * oldHead = readyQueueHead;
-    readyQueueHead = readyQueueHead->next;
-    delete(oldHead);
-  } else {
-    ReadyQueueNode * curr = readyQueueHead;
-    while(curr != nullptr && curr->next != nullptr) {
-      if(curr->next->thread == _thread) {
-        ReadyQueueNode * toDelete = curr->next;
-        curr->next = curr->next->next;
-        delete(toDelete);
-        delete(_thread);
-        break;
-      }
-      curr = curr->next;
-    }
-  }
-
+  delete(_thread);
 }
